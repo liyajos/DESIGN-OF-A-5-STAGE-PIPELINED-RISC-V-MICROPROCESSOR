@@ -1,0 +1,67 @@
+// ============================================================
+// program.mem - Tests all instruction formats for 5-stage pipeline
+// ============================================================
+// Address  Instruction          Format  Operation
+// ------------------------------------------------------------
+// 0x00     00500093             I       ADDI x1, x0, 5         ? x1 = 5
+// 0x04     00300113             I       ADDI x2, x0, 3         ? x2 = 3
+// 0x08     002081B3             R       ADD  x3, x1, x2        ? x3 = 8
+// 0x0C     40208233             R       SUB  x4, x1, x2        ? x4 = 2
+// 0x10     0020F2B3             R       AND  x5, x1, x2        ? x5 = 1
+// 0x14     0020E333             R       OR   x6, x1, x2        ? x6 = 7
+// 0x18     00112433             R       SLT  x8, x2, x1        ? x8 = 1
+// 0x1C     00A00393             I       ADDI x7, x0, 10        ? x7 = 10
+// 
+// ----- S-type (Store) -----
+// 0x20     0030A023             S       SW   x3, 0(x1)         -> mem[x1+0]=8
+// 0x24     0040A223             S       SW   x4, 4(x1)         -> mem[x1+4]=2
+// 
+// ----- I-type (Load) -----
+// 0x28     0000A503             I       LW   x10, 0(x1)        ? x10 = 8
+// 0x2C     0040A583             I       LW   x11, 4(x1)        ? x11 = 2
+// 
+// ----- SB-type (Branch taken) -----
+// 0x30     00A58463             SB      BEQ  x11, x10, 8       -> taken if equal (false)
+// 0x34     0080006F             UJ      JAL  x0, 8             -> jump to 0x3C (skip next)
+// 0x38     0030A423             S       SW   x3, 8(x1)         -> should be skipped
+// 
+// ----- U-type (LUI) -----
+// 0x3C     0000C537             U       LUI  x10, 0xC          ? x10 = 0xC000 (0x0000C000)
+// 
+// ----- U-type (AUIPC) -----
+// 0x40     00001517             U       AUIPC x10, 0x1         ? x10 = PC + 0x1000 (0x40+0x1000=0x1040)
+// 
+// ----- UJ-type (JAL) -----
+// 0x44     010000EF             UJ      JAL  x1, 16            -> x1 = 0x48, jump to 0x54
+// 
+// ----- SB-type (BNE) -----
+// 0x48     00208463             SB      BEQ  x1, x2, 8         -> false, fall through
+// 0x4C     00A00593             I       ADDI x11, x0, 10       -> x11 = 10
+// 
+// ----- JALR (I-type) -----
+// 0x50     000080E7             I       JALR x1, 0(x1)         -> jump to x1 (0x48)
+// 
+// ----- Halt / infinite loop -----
+// 0x54     0000006F             UJ      JAL  x0, 0x54          -> self loop
+00500093
+00300113
+002081B3
+40208233
+0020F2B3
+0020E333
+00112433
+00A00393
+0030A023
+0040A223
+0000A503
+0040A583
+00A58463
+0080006F
+0030A423
+0000C537
+00001517
+010000EF
+00208463
+00A00593
+000080E7
+0000006F
